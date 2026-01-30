@@ -1,6 +1,6 @@
 const Service = require("../models/Service");
 
-// Create a new service (vendor/admin)
+// ================= CREATE =================
 exports.createService = async (req, res) => {
   try {
     const { name, description, price, category } = req.body;
@@ -22,19 +22,20 @@ exports.createService = async (req, res) => {
   }
 };
 
-// Get all services (public)
+// ================= GET ALL =================
 exports.getAllServices = async (req, res) => {
   try {
     const services = await Service.find()
       .populate("vendor", "name email role")
       .sort({ createdAt: -1 });
+
     res.json(services);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get single service by ID
+// ================= GET ONE =================
 exports.getServiceById = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id).populate(
@@ -51,7 +52,7 @@ exports.getServiceById = async (req, res) => {
   }
 };
 
-// Update a service (vendor/admin)
+// ================= UPDATE =================
 exports.updateService = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
@@ -59,28 +60,23 @@ exports.updateService = async (req, res) => {
     if (!service)
       return res.status(404).json({ message: "Service not found" });
 
-    // Only vendor who owns it or admin can update
-    if (service.vendor.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    if (
+      service.vendor.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    const { name, description, price, category, available } = req.body;
+    Object.assign(service, req.body);
+    const updated = await service.save();
 
-    service.name = name || service.name;
-    service.description = description || service.description;
-    service.price = price !== undefined ? price : service.price;
-    service.category = category || service.category;
-    if (available !== undefined) service.available = available;
-
-    const updatedService = await service.save();
-
-    res.json({ message: "Service updated successfully", service: updatedService });
+    res.json({ message: "Service updated successfully", service: updated });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Delete a service (vendor/admin)
+// ================= DELETE =================
 exports.deleteService = async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
@@ -88,8 +84,10 @@ exports.deleteService = async (req, res) => {
     if (!service)
       return res.status(404).json({ message: "Service not found" });
 
-    // Only vendor who owns it or admin can delete
-    if (service.vendor.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    if (
+      service.vendor.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
       return res.status(403).json({ message: "Not authorized" });
     }
 

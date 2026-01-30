@@ -9,111 +9,80 @@ exports.createOrder = async (req, res) => {
     const { serviceId, scheduledDate, notes } = req.body;
 
     const service = await Service.findById(serviceId);
-    if (!service) return res.status(404).json({ message: "Service not found" });
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
 
     const order = await Order.create({
       customer: req.user._id,
-      service: service._id,
       vendor: service.vendor,
+      service: service._id,
       totalPrice: service.price,
       scheduledDate,
       notes,
     });
 
-    res.status(201).json({
-      message: "Order placed successfully",
-      order,
-    });
+    res.status(201).json(order);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 // ========================
-// Vendor: Get Orders by Vendor
+// Vendor: Get Orders
 // ========================
 exports.getVendorOrders = async (req, res) => {
-  try {
-    const vendorId = req.user._id;
+  const orders = await Order.find({ vendor: req.user._id })
+    .populate("customer", "name email")
+    .populate("service", "name price")
+    .sort({ scheduledDate: 1 });
 
-    const orders = await Order.find({ vendor: vendorId })
-      .populate("customer", "name email")
-      .populate("service", "name price category")
-      .sort({ scheduledDate: 1 });
+  const grouped = {
+    pending: [],
+    inProgress: [],
+    completed: [],
+  };
 
-    const grouped = {
-      pending: [],
-      inProgress: [],
-      completed: [],
-    };
-
-    orders.forEach(order => {
-      grouped[order.status].push(order);
-    });
-
-    res.json(grouped);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  orders.forEach(o => grouped[o.status].push(o));
+  res.json(grouped);
 };
 
 // ========================
-// Customer: Get their own Orders
+// Customer: Get Orders
 // ========================
 exports.getCustomerOrders = async (req, res) => {
-  try {
-    const orders = await Order.find({ customer: req.user._id })
-      .populate("service", "name price category")
-      .populate("vendor", "name email")
-      .sort({ scheduledDate: 1 });
+  const orders = await Order.find({ customer: req.user._id })
+    .populate("service", "name price")
+    .populate("vendor", "name email");
 
-    res.json(orders);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  res.json(orders);
 };
 
 // ========================
-// Vendor/Admin: Update Order Status
+// Update Status
 // ========================
 exports.updateOrderStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
+  const order = await Order.findById(req.params.id);
+  if (!order) return res.status(404).json({ message: "Order not found" });
 
-    const order = await Order.findById(id);
-    if (!order) return res.status(404).json({ message: "Order not found" });
-
-    // Vendor can only update their own orders
-    if (req.user.role === "vendor" && order.vendor.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Forbidden: No permission" });
-    }
-
-    order.status = status || order.status;
-    const updatedOrder = await order.save();
-
-    res.json({
-      message: "Order status updated successfully",
-      order: updatedOrder,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  if (
+    req.user.role === "vendor" &&
+    order.vendor.toString() !== req.user._id.toString()
+  ) {
+    return res.status(403).json({ message: "Forbidden" });
   }
+
+  order.status = req.body.status;
+  await order.save();
+
+  res.json(order);
 };
 
 // ========================
-// Admin: Get All Orders
+// Admin
 // ========================
 exports.getAllOrders = async (req, res) => {
-  try {
-    const orders = await Order.find()
-      .populate("customer", "name email")
-      .populate("vendor", "name email")
-      .populate("service", "name price category")
-      .sort({ createdAt: -1 });
-
-    res.json(orders);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const orders = await Order.find()
+    .populate("customer vendor service", "name email price");
+  res.json(orders);
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 
@@ -7,63 +7,61 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const role = localStorage.getItem("role");
-  const token = localStorage.getItem("token");
+  // Get role and token safely
+  const role = localStorage.getItem("role") || "customer";
+  const token = localStorage.getItem("token") || "";
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        let url = "";
+  // Wrap fetchOrders in useCallback to prevent ESLint warning
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      let url = "";
 
-        if (role === "admin") {
-          url = "http://localhost:5000/api/orders";
-        } else if (role === "vendor") {
-          url = "http://localhost:5000/api/orders/vendororders";
-        } else {
-          url = "http://localhost:5000/api/orders/customerorders";
-        }
+      if (role === "admin") url = "http://localhost:5000/api/orders";
+else if (role === "vendor") url = "http://localhost:5000/api/orders/vendor";
+else url = "http://localhost:5000/api/orders/customer";
 
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        // Vendor orders come grouped → flatten them
-        if (role === "vendor") {
-          const grouped = response.data;
-          const allOrders = [
-            ...(grouped.pending || []),
-            ...(grouped.inProgress || []),
-            ...(grouped.completed || []),
-          ];
-          setOrders(allOrders);
-        } else {
-          setOrders(response.data);
-        }
-      } catch (error) {
-        setError("Failed to load orders");
-      } finally {
-        setLoading(false);
+      if (role === "vendor") {
+        const grouped = response.data;
+        const allOrders = [
+          ...(grouped.pending || []),
+          ...(grouped.inProgress || []),
+          ...(grouped.completed || []),
+        ];
+        setOrders(allOrders);
+      } else {
+        setOrders(response.data || []);
       }
-    };
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load orders. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [role, token]); // dependencies here
 
+  // useEffect will now call fetchOrders without ESLint warning
+  useEffect(() => {
     fetchOrders();
-  }, [role, token]);
+  }, [fetchOrders]);
 
   return (
     <div style={container}>
       <Navbar role={role} />
-
       <div style={content}>
-        <h2 style={title}>📦 Orders</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={title}>📦 Orders</h2>
+          <button style={refreshBtn} onClick={fetchOrders}>🔄 Refresh</button>
+        </div>
 
         {loading && <p>Loading orders...</p>}
         {error && <p style={errorText}>{error}</p>}
-
-        {!loading && orders.length === 0 && (
-          <p style={emptyText}>No orders found</p>
-        )}
+        {!loading && orders.length === 0 && <p style={emptyText}>No orders found</p>}
 
         {!loading && orders.length > 0 && (
           <div style={tableWrapper}>
@@ -78,29 +76,16 @@ export default function OrdersPage() {
                   <th style={th}>Status</th>
                 </tr>
               </thead>
-
               <tbody>
                 {orders.map((order) => (
                   <tr key={order._id}>
+                    <td style={td}>{order.customer?.name || "—"}</td>
+                    <td style={td}>{order.service?.name || "—"}</td>
+                    <td style={td}>{order.vendor?.name || "—"}</td>
+                    <td style={td}>{order.scheduledDate ? new Date(order.scheduledDate).toLocaleDateString() : "—"}</td>
+                    <td style={td}>{order.totalPrice ? `Rs. ${order.totalPrice}` : "—"}</td>
                     <td style={td}>
-                      {order.customer?.name || "—"}
-                    </td>
-                    <td style={td}>
-                      {order.service?.name}
-                    </td>
-                    <td style={td}>
-                      {order.vendor?.name || "—"}
-                    </td>
-                    <td style={td}>
-                      {new Date(order.scheduledDate).toLocaleDateString()}
-                    </td>
-                    <td style={td}>
-                      Rs. {order.totalPrice}
-                    </td>
-                    <td style={td}>
-                      <span style={statusBadge(order.status)}>
-                        {order.status}
-                      </span>
+                      <span style={statusBadge(order.status)}>{order.status || "—"}</span>
                     </td>
                   </tr>
                 ))}
@@ -114,7 +99,6 @@ export default function OrdersPage() {
 }
 
 /* ===================== STYLES ===================== */
-
 const container = {
   minHeight: "100vh",
   background: "#020617",
@@ -127,7 +111,16 @@ const content = {
 
 const title = {
   fontSize: "1.6rem",
-  marginBottom: "1.5rem",
+  marginBottom: "1rem",
+};
+
+const refreshBtn = {
+  padding: "6px 12px",
+  borderRadius: "6px",
+  border: "none",
+  background: "#4f7cff",
+  color: "white",
+  cursor: "pointer",
 };
 
 const errorText = {
@@ -174,6 +167,8 @@ const statusBadge = (status) => ({
       ? "#facc15"
       : status === "inProgress"
       ? "#38bdf8"
-      : "#22c55e",
+      : status === "completed"
+      ? "#22c55e"
+      : "#64748b",
   color: "#020617",
 });

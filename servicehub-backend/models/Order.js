@@ -7,20 +7,15 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    service: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Service",
-      required: true,
-    },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    status: {
-      type: String,
-      enum: ["pending", "inProgress", "completed"],
-      default: "pending",
+    service: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Service",
+      required: true,
     },
     totalPrice: {
       type: Number,
@@ -30,10 +25,12 @@ const orderSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    notes: {
+    status: {
       type: String,
-      default: "",
+      enum: ["pending", "inProgress", "completed"],
+      default: "pending",
     },
+    notes: String,
   },
   { timestamps: true }
 );

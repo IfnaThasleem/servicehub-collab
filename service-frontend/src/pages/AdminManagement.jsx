@@ -26,30 +26,34 @@ export default function AdminManagement() {
   const headers = { Authorization: `Bearer ${token}` };
 
   /* ================= FETCH ALL ================= */
-  useEffect(() => {
-    fetchAll();
-  }, []);
+ useEffect(() => {
+  fetchAll();
+}, []);
 
-  const fetchAll = async () => {
-    try {
-      const [usersRes, ordersRes, servicesRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/users", { headers }),
-        axios.get("http://localhost:5000/api/orders", { headers }),
-        axios.get("http://localhost:5000/api/services", { headers }),
-      ]);
+const fetchAll = async () => {
+  const token = localStorage.getItem("token");
+  const headers = { Authorization: `Bearer ${token}` };
 
-      const users = usersRes.data;
-      setCustomers(users.filter((u) => u.role === "user"));
-      setVendors(users.filter((u) => u.role === "vendor"));
-      setOrders(ordersRes.data);
-      setServices(servicesRes.data);
-    } catch (err) {
-      console.error("Admin fetch error:", err);
-      alert(err.response?.data?.message || "Failed to fetch data");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const [usersRes, ordersRes, servicesRes] = await Promise.all([
+      axios.get("http://localhost:5000/api/users", { headers }),
+      axios.get("http://localhost:5000/api/orders", { headers }),
+      axios.get("http://localhost:5000/api/services", { headers }),
+    ]);
+
+    const users = usersRes.data;
+    setCustomers(users.filter((u) => u.role === "user"));
+    setVendors(users.filter((u) => u.role === "vendor"));
+    setOrders(ordersRes.data);
+    setServices(servicesRes.data);
+  } catch (err) {
+    console.error("Admin fetch error:", err);
+    alert(err.response?.data?.message || "Failed to fetch data");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   /* ================= VENDOR CRUD ================= */
   const toggleVendorStatus = async (vendor) => {

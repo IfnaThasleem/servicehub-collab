@@ -1,52 +1,49 @@
 import { Link, useNavigate } from "react-router-dom";
 
-export default function Navbar() {
+export default function Navbar({ role }) {
   const navigate = useNavigate();
 
-  // ✅ Get role safely
-  const role = localStorage.getItem("role");
-
-  const handleLogout = () => {
+  const logout = () => {
     localStorage.clear();
-    navigate("/");
+    navigate("/login");
   };
 
   return (
     <nav style={nav}>
-      <h3 style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
-        ServiceHub
-      </h3>
+      <h2 style={logo}>ServiceHub</h2>
 
       <div style={links}>
-        {/* ROLE BASED DASHBOARD LINKS */}
+        {/* ================= ADMIN ================= */}
         {role === "admin" && (
-          <Link to="/admin/dashboard" style={link}>
-            Admin Dashboard
-          </Link>
+          <>
+            <NavItem to="/admin/dashboard" label="Dashboard" />
+            <NavItem to="/admin/manage" label="Manage Users" />
+            <NavItem to="/services" label="Services" />
+            <NavItem to="/orders" label="Orders" />
+          </>
         )}
 
+        {/* ================= VENDOR ================= */}
         {role === "vendor" && (
-          <Link to="/vendor/dashboard" style={link}>
-            Vendor Dashboard
-          </Link>
+          <>
+            <NavItem to="/vendor/dashboard" label="Dashboard" />
+            <NavItem to="/vendor/services" label="My Services" />
+            <NavItem to="/vendor/earnings" label="Earnings" />
+            <NavItem to="/orders" label="Orders" />
+          </>
         )}
 
+        {/* ================= USER ================= */}
         {role === "user" && (
-          <Link to="/user/dashboard" style={link}>
-            Dashboard
-          </Link>
+          <>
+            <NavItem to="/user/dashboard" label="Dashboard" />
+            <NavItem to="/services" label="Services" />
+            <NavItem to="/orders" label="My Orders" />
+          </>
         )}
 
-        {/* SHARED LINKS */}
-        <Link to="/orders" style={link}>
-          Orders
-        </Link>
-
-        <Link to="/services" style={link}>
-          Services
-        </Link>
-
-        <button onClick={handleLogout} style={logoutBtn}>
+        {/* ================= LOGOUT ================= */}
+        <button style={logoutBtn} onClick={logout}>
           Logout
         </button>
       </div>
@@ -54,32 +51,44 @@ export default function Navbar() {
   );
 }
 
-/* ================= STYLES ================= */
+/* ================= REUSABLE LINK ================= */
+const NavItem = ({ to, label }) => (
+  <Link to={to} style={link}>
+    {label}
+  </Link>
+);
 
+/* ================= STYLES ================= */
 const nav = {
-  background: "#020617",
-  padding: "1rem 2rem",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  color: "white",
+  padding: "1rem 2rem",
+  background: "#020617",
+  borderBottom: "1px solid #1e293b",
+};
+
+const logo = {
+  color: "#4f7cff",
+  margin: 0,
 };
 
 const links = {
   display: "flex",
+  gap: "1.2rem",
   alignItems: "center",
-  gap: "1rem",
 };
 
 const link = {
-  color: "white",
+  color: "#e5e7eb",
   textDecoration: "none",
+  fontWeight: "500",
 };
 
 const logoutBtn = {
+  padding: "6px 12px",
   background: "#ef4444",
   border: "none",
-  padding: "6px 12px",
   borderRadius: "6px",
   color: "white",
   cursor: "pointer",

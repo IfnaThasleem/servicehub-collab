@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-/* ===== PUBLIC PAGES ===== */
+/* ===== PUBLIC ===== */
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -13,6 +13,7 @@ import AdminManagement from "./pages/AdminManagement";
 
 /* ===== VENDOR ===== */
 import VendorDashboard from "./pages/VendorDashboard";
+import VendorServices from "./pages/VendorServices";
 import VendorEarnings from "./pages/VendorEarnings";
 
 /* ===== USER ===== */
@@ -21,6 +22,8 @@ import UserDashboard from "./pages/UserDashboard";
 /* ===== SHARED ===== */
 import OrdersPage from "./pages/OrdersPage";
 import ServicesPage from "./pages/ServicesPage";
+import PaymentPage from "./pages/PaymentPage";
+import ReviewsPage from "./pages/ReviewsPage";
 
 /* ===== AUTH ===== */
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -29,14 +32,15 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ================= PUBLIC ================= */}
+
+        {/* ========= PUBLIC ========= */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* ================= ADMIN ================= */}
+        {/* ========= ADMIN ========= */}
         <Route
           path="/admin/dashboard"
           element={
@@ -45,7 +49,6 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/admin/manage"
           element={
@@ -55,7 +58,7 @@ export default function App() {
           }
         />
 
-        {/* ================= VENDOR ================= */}
+        {/* ========= VENDOR ========= */}
         <Route
           path="/vendor/dashboard"
           element={
@@ -64,7 +67,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/vendor/services"
+          element={
+            <ProtectedRoute role="vendor">
+              <VendorServices />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/vendor/earnings"
           element={
@@ -74,7 +84,7 @@ export default function App() {
           }
         />
 
-        {/* ================= USER ================= */}
+        {/* ========= USER ========= */}
         <Route
           path="/user/dashboard"
           element={
@@ -84,7 +94,15 @@ export default function App() {
           }
         />
 
-        {/* ================= SHARED ================= */}
+        {/* ========= SHARED ========= */}
+        <Route
+          path="/services"
+          element={
+            <ProtectedRoute>
+              <ServicesPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/orders"
           element={
@@ -94,17 +112,29 @@ export default function App() {
           }
         />
 
+        {/* ========= PAYMENT ========= */}
         <Route
-          path="/services"
+          path="/payment/:orderId"
           element={
             <ProtectedRoute>
-              <ServicesPage />
+              <PaymentPage />
             </ProtectedRoute>
           }
         />
 
-        {/* ================= FALLBACK ================= */}
+        {/* ========= REVIEWS ========= */}
+        <Route
+          path="/reviews/:serviceId"
+          element={
+            <ProtectedRoute>
+              <ReviewsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ========= FALLBACK ========= */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
     </BrowserRouter>
   );

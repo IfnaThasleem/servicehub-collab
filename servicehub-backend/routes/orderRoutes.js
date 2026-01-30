@@ -5,20 +5,20 @@ const {
   getVendorOrders,
   getCustomerOrders,
   updateOrderStatus,
-  getAllOrders
+  getAllOrders,
 } = require("../controllers/orderController");
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
-// Customer routes
+// Customer
 router.post("/", protect, authorizeRoles("user"), createOrder);
-router.get("/customerorders", protect, authorizeRoles("user"), getCustomerOrders);
+router.get("/customer", protect, authorizeRoles("user"), getCustomerOrders);
 
-// Vendor routes
-router.get("/vendororders", protect, authorizeRoles("vendor"), getVendorOrders);
+// Vendor
+router.get("/vendor", protect, authorizeRoles("vendor"), getVendorOrders);
 router.put("/:id/status", protect, authorizeRoles("vendor", "admin"), updateOrderStatus);
 
-// Admin route
+// Admin
 router.get("/", protect, authorizeRoles("admin"), getAllOrders);
 
 module.exports = router;

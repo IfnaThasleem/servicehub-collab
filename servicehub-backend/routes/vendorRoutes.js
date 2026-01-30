@@ -1,10 +1,24 @@
-import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
-import { getVendorDashboard, getVendorOrders } from "../controllers/vendorController.js";
-
+const express = require("express");
 const router = express.Router();
 
-router.get("/dashboard", protect, getVendorDashboard);
-router.get("/orders", protect, getVendorOrders);
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
+const {
+  getVendorDashboard,
+  getVendorOrders,
+} = require("../controllers/vendorController");
 
-export default router;
+router.get(
+  "/dashboard",
+  protect,
+  authorizeRoles("vendor"),
+  getVendorDashboard
+);
+
+router.get(
+  "/orders",
+  protect,
+  authorizeRoles("vendor"),
+  getVendorOrders
+);
+
+module.exports = router;
