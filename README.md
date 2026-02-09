@@ -56,34 +56,34 @@ Database (MongoDB)
 git clone https://github.com/IfnaThasleem/servicehub-collab.git
 
 ##Backend Setup
-cd backend
-npm install
-npm run dev
+-cd servicehub-backend
+-npm install
+-npm run dev
 
 ##.env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-PORT=5000
+ -MONGO_URI=your_mongodb_connection_string
+-JWT_SECRET=your_secret_key
+-PORT=5000
 
 ## Frontend Setup
-cd frontend
-npm install
-npm run dev
+-cd service-frontend
+-npm install
+-npm run dev
 
 ## Learning Outcomes
-Full-stack application development
-REST API design and integration
-JWT authentication
-React dashboard UI development
-MongoDB database operations
-Git version control and project management
+-Full-stack application development
+-REST API design and integration
+-JWT authentication
+-React dashboard UI development
+-MongoDB database operations
+-Git version control and project management
 
 ## Future Improvements
-Payment gateway integration
-Cloud deployment
-User reviews and ratings
+-Payment gateway integration
+-Cloud deployment
+-User reviews and ratings
 
 ## Authors
-Ifna Thasleem & Hafsa Rizvi
-Interns
-Woocurs Technologies
+-Ifna Thasleem & Hafsa Rizvi
+-Interns
+-Woocurs Technologies
